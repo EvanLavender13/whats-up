@@ -1,0 +1,5 @@
+.vs/
+*.vcxproj*
+WhatsUp/
+vcpkg_installed/
+x64/
