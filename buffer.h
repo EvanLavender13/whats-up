@@ -43,16 +43,25 @@ class Buffer {
   bool Empty() { return !chunk_.has_value() && !failure_; }
 
   //
-  bool Full() { return !Empty(); }
+  bool Full() { return chunk_.has_value(); }
 
   //
   bool Failure() { return failure_ && !chunk_.has_value(); }
 
   //
-  bool Requested();
+  bool Requested() { return chunk_.has_value() && requested_; }
 
   //
-  bool Unrequested();
+  bool Unrequested() { return chunk_.has_value() && !requested_; }
+
+  //
+  bool Free() { return module_->state() == module::kFree; }
+
+  //
+  bool Busy() { return module_->state() == module::kBusy; }
+
+  //
+  bool Error() { return module_->state() == module::kError; }
 
  private:
   //
@@ -70,13 +79,14 @@ class Buffer {
 
 }  // namespace wu::actr
 
+//
 namespace wu::actr::buffer {
 
 //
 using Test = std::function<bool(Buffer *)>;
 
 //
-using Action = std::function<void(Buffer *)>;
+using Action = std::pair<std::function<void(Buffer *)>, int>;
 
 //
 static Test Query(Slots slots) {
@@ -94,13 +104,28 @@ static Test Full() {
 }
 
 //
+static Test Free() {
+  return [](Buffer *buffer) { return buffer->Free(); };
+}
+
+//
+static Test Busy() {
+  return [](Buffer *buffer) { return buffer->Busy(); };
+}
+
+//
+static Test Error() {
+  return [](Buffer *buffer) { return buffer->Error(); };
+}
+
+//
 static Action Clear() {
-  return [](Buffer *buffer) { buffer->Clear(); };
+  return {[](Buffer *buffer) { buffer->Clear(); }, 10};
 }
 
 //
 static Action Modify(Slots slots) {
-  return [slots](Buffer *buffer) { buffer->Modify(slots); };
+  return {[slots](Buffer *buffer) { buffer->Modify(slots); }, 100};
 }
 
 //
@@ -110,7 +135,7 @@ static Action Modify(Slots slots) {
 
 //
 static Action Request(Slots slots) {
-  return [slots](Buffer *buffer) { buffer->Request(slots); };
+  return {[slots](Buffer *buffer) { buffer->Request(slots); }, 50};
 }
 
 }  // namespace wu::actr::buffer

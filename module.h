@@ -4,6 +4,12 @@
 #include "chunk.h"
 #include "event.h"
 
+namespace wu::actr::module {
+
+enum State { kFree, kBusy, kError };
+
+}
+
 namespace wu::actr {
 
 class Module {
@@ -13,6 +19,12 @@ class Module {
 
   //
   std::string name() { return name_; }
+
+  //
+  void state(module::State state) { state_ = state; }
+
+  //
+  module::State state() const { return state_; }
 
  protected:
   //
@@ -24,6 +36,9 @@ class Module {
 
   //
   EventQueue *event_queue_;
+
+  //
+  module::State state_{module::kFree};
 
  private:
 };

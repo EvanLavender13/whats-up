@@ -6,8 +6,6 @@ bool Process::Run(double delta_time) {
   LOG(INFO) << __FUNCTION__ << "[Start delta_time=" << delta_time
             << " time_=" << time_ << "]";
 
-  auto start = std::chrono::high_resolution_clock::now();
-
   //
   if (event_queue_->empty()) {
     LOG(INFO) << __FUNCTION__ << "[No events remaining; exiting]";
@@ -17,6 +15,9 @@ bool Process::Run(double delta_time) {
   LOG(INFO) << __FUNCTION__ << "[" << event_queue_->size()
             << " event(s) in queue]";
 
+  auto start = std::chrono::high_resolution_clock::now();
+
+  //
   while (event_queue_->size() > 0) {
     //
     Event event = event_queue_->top();
@@ -25,7 +26,7 @@ bool Process::Run(double delta_time) {
     double time_diff = event.time() - time_;
 
     //
-    if (event.time() < 0.0 || time_diff < 0.001) {
+    if (event.time() <= 0.0 || time_diff < 0.001) {
       LOG(INFO) << __FUNCTION__ << "[event=" << event << "]";
 
       //

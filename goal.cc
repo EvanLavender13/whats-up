@@ -10,7 +10,7 @@ namespace wu::actr::goal {
 void Module::Focus(Chunk chunk) {
   LOG(INFO) << __FUNCTION__ << "[chunk=" << chunk << "]";
 
-  Event event(name_, "goal-focus", -1.0, [this, chunk]() {
+  Event event(name_, "goal-focus", 0.0, 100, [this, chunk]() {
     buffer_.Set(chunk);
     return true;
   });

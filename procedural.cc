@@ -22,10 +22,8 @@ bool Module::ResolveConflicts(double time) {
     bool match = true;
 
     Conditions conditions = production.conditions();
-    for (auto &condition_entry : conditions) {
-      std::string module_name = condition_entry.first;
-      buffer::Test condition_check = condition_entry.second;
-      match &= condition_check(buffers_[module_name]);
+    for (auto &[buffer_name, condition] : conditions) {
+      match &= condition(buffers_[buffer_name]);
     }
 
     if (match) {
@@ -44,12 +42,10 @@ bool Module::ResolveConflicts(double time) {
                 << event_time << "]";
 
       //
-      for (auto &action_entry : actions) {
-        std::string module_name = action_entry.first;
-        buffer::Action action = action_entry.second;
+      for (auto &[module_name, action_pair] : actions) {
+        auto &[action, priority] = action_pair;
 
-        //
-        Event event("procedural", production.name(), event_time,
+        Event event("procedural", production.name(), event_time, priority,
                     [this, action, module_name, event_time]() {
                       action(buffers_[module_name]);
 
@@ -57,7 +53,6 @@ bool Module::ResolveConflicts(double time) {
                       return true;
                     });
 
-        //
         event_queue_->emplace(event);
       }
     }
@@ -71,7 +66,7 @@ bool Module::ResolveConflicts(double time) {
 void Module::ScheduleConflictResolution(double time) {
   LOG(INFO) << __FUNCTION__ << "[time=" << time << "]";
 
-  Event event("procedural", "conflict-resolution", time,
+  Event event("procedural", "conflict-resolution", time, -1,
               [this, time]() { return ResolveConflicts(time); });
 
   event_queue_->emplace(event);
