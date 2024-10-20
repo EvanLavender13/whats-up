@@ -49,11 +49,13 @@ class Event {
   std::function<bool()> action_;
 };
 
+//
 class CompareEvents {
  public:
-  bool operator()(Event a, Event b) { return a.time() < b.time(); }
+  bool operator()(Event a, Event b) { return a.time() > b.time(); }
 };
 
+//
 using EventQueue =
     std::priority_queue<Event, std::vector<Event>, CompareEvents>;
 

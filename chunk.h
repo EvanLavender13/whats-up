@@ -17,10 +17,10 @@ class Chunk {
   Chunk(std::string name, Slots slots) : name_(name), slots_(slots) {}
 
   //
-  std::string Modify(Slots slots);
+  std::string Modify(Slots& mod_slots);
 
   //
-  bool SlotEquals(Slots slots);
+  bool SlotEquals(Slots& check_slots);
 
   //
   std::string name() { return name_; }

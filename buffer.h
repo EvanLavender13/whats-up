@@ -6,6 +6,7 @@
 #include <string>
 
 #include "chunk.h"
+#include "module.h"
 
 namespace wu::actr {
 
@@ -13,7 +14,7 @@ namespace wu::actr {
 class Buffer {
  public:
   //
-  Buffer(std::string name) : name_(name) {}
+  Buffer(Module *module) : module_(module) {}
 
   //
   std::string Read() {
@@ -27,13 +28,16 @@ class Buffer {
   std::string Clear();
 
   //
-  std::string Set(Chunk chunk, bool requested = true);
+  std::string Set(Chunk chunk, bool requested = true, bool clear = true);
 
   //
-  std::string Overwrite(Chunk chunk);
+  // std::string Overwrite(Chunk chunk);
 
   //
   std::string Modify(Slots slots);
+
+  //
+  bool Request(Slots slots);
 
   //
   bool Empty() { return !chunk_.has_value() && !failure_; }
@@ -52,7 +56,7 @@ class Buffer {
 
  private:
   //
-  std::string name_;
+  Module *module_;
 
   //
   std::optional<Chunk> chunk_{std::nullopt};
@@ -97,6 +101,16 @@ static Action Clear() {
 //
 static Action Modify(Slots slots) {
   return [slots](Buffer *buffer) { buffer->Modify(slots); };
+}
+
+//
+// static Action Overwrite(Slots slots) {
+//  return [slots](Buffer *buffer) { buffer->Overwrite(slots); };
+//}
+
+//
+static Action Request(Slots slots) {
+  return [slots](Buffer *buffer) { buffer->Request(slots); };
 }
 
 }  // namespace wu::actr::buffer

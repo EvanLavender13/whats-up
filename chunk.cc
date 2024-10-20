@@ -5,14 +5,22 @@
 
 namespace wu::actr {
 
-std::string Chunk::Modify(Slots slots) { return name(); }
+std::string Chunk::Modify(Slots &mod_slots) {
+  LOG(INFO) << __FUNCTION__ << "[mod_slots=]";
 
-bool Chunk::SlotEquals(Slots check_slots) {
+  for (auto &slot : mod_slots) {
+    slots_[slot.first] = slot.second;
+  }
+
+  return name();
+}
+
+bool Chunk::SlotEquals(Slots &check_slots) {
+  LOG(INFO) << __FUNCTION__ << "[check_slots=]";
+
   bool equals = true;
 
   for (auto &slot : check_slots) {
-    LOG(INFO) << "wu::actr::Chunk::SlotEquals[slot=[" << slot.first << ", "
-              << slot.second << "]]";
     if (slots_.count(slot.first) == 1) {
       equals &= slots_[slot.first] == slot.second;
     }
