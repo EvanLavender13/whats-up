@@ -8,14 +8,14 @@
 namespace wu::actr::goal {
 
 //
-class Module : actr::Module {
+class Module : public actr::Module {
  public:
   //
-  Module(EventQueue* event_queue)
+  Module(event::Queue* event_queue)
       : actr::Module("goal", event_queue), buffer_(this) {}
 
   //
-  bool Request(Slots &slots) override { return true; };
+  void Request(Slots& slots) override {}
 
   //
   void Focus(Chunk chunk);

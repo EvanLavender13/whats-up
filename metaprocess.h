@@ -16,17 +16,32 @@ namespace wu::actr {
 class Process {
  public:
   //
-  Process(EventQueue *event_queue) : event_queue_(event_queue) {}
+  Process(event::Queue *event_queue, std::vector<Module *> modules)
+      : event_queue_(event_queue), modules_(modules) {
+    LOG(INFO) << __FUNCTION__ << "[Created]";
+
+    //
+    event_queue_->Signal("conflict-resolution", time_);
+  }
 
   //
   bool Run(double delta_time);
 
+  //
+  double time() const { return time_; }
+
  private:
   //
-  EventQueue *event_queue_;
+  event::Queue *event_queue_;
 
   //
   double time_{0.0};
+
+  //
+  int step_{1};
+
+  //
+  std::vector<Module *> modules_;
 };
 
 }  // namespace wu::actr

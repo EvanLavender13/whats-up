@@ -15,7 +15,7 @@ namespace wu::actr {
 class Module {
  public:
   //
-  virtual bool Request(Slots &slots) = 0;
+  virtual void Request(Slots &slots) = 0;
 
   //
   std::string name() { return name_; }
@@ -26,19 +26,25 @@ class Module {
   //
   module::State state() const { return state_; }
 
+  //
+  void time(double time) { time_ = time; }
+
  protected:
   //
-  Module(std::string name, EventQueue *event_queue)
+  Module(std::string name, event::Queue *event_queue)
       : name_(name), event_queue_(event_queue) {}
 
   //
   std::string name_;
 
   //
-  EventQueue *event_queue_;
+  event::Queue *event_queue_;
 
   //
   module::State state_{module::kFree};
+
+  //
+  double time_{0.0};
 
  private:
 };

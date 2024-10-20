@@ -4,22 +4,26 @@
 #include <map>
 
 #include "buffer.h"
+#include "event.h"
 #include "module.h"
 
 namespace wu::actr::declarative {
 
 //
-class Module : actr::Module {
+class Module : public actr::Module, public ClearListener {
  public:
   //
-  Module(EventQueue *event_queue)
-      : actr::Module("retrieval", event_queue), buffer_(this) {}
+  Module(event::Queue *event_queue)
+      : actr::Module("retrieval", event_queue), buffer_(this, this) {}
 
   //
-  bool Request(Slots &slots) override;
+  void Request(Slots &slots) override;
 
   //
-  bool Retrieve(Slots &slots);
+  void OnClear(Chunk chunk) override;
+
+  //
+  void Retrieve(Slots &slots);
 
   //
   bool Add(Chunk chunk) {
@@ -32,10 +36,25 @@ class Module : actr::Module {
 
  private:
   //
+  double BaseLevelActivation(Chunk &chunk);
+
+  //
   Buffer buffer_;
 
   //
   std::map<std::string, Chunk> chunks_;
+
+  //
+  double decay_{0.5};
+
+  //
+  double latency_{1.0};
+
+  //
+  double latency_exp_{1.0};
+
+  //
+  double threshold_{0.0};
 };
 
 }  // namespace wu::actr::declarative

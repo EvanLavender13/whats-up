@@ -5,22 +5,31 @@
 #include <vector>
 
 #include "buffer.h"
-#include "event.h"
+#include "module.h"
 #include "production.h"
 
+//
 namespace wu::actr {
 
 using Buffers = std::map<std::string, Buffer *>;
 
 }  // namespace wu::actr
 
+//
 namespace wu::actr::procedural {
 
-class Module {
+class Module : public actr::Module {
  public:
   //
-  Module(EventQueue *event_queue, Buffers buffers)
-      : event_queue_(event_queue), buffers_(buffers) {}
+  Module(event::Queue *event_queue, Buffers buffers)
+      : actr::Module("production", event_queue), buffers_(buffers) {
+    event_queue_->AddSignal("conflict-resolution", [this](double time) {
+      ScheduleConflictResolution(time);
+    });
+  }
+
+  //
+  void Request(Slots &slots) override {}
 
   //
   void Add(Production production);
@@ -32,9 +41,6 @@ class Module {
   void ScheduleConflictResolution(double time);
 
  private:
-  //
-  EventQueue *event_queue_;
-
   //
   std::vector<Production> productions_;
 

@@ -1,9 +1,9 @@
 #ifndef WHATS_UP_EVENT_H_
 #define WHATS_UP_EVENT_H_
 
-#include <chrono>
 #include <functional>
 #include <iostream>
+#include <map>
 #include <queue>
 
 namespace wu::actr {
@@ -12,7 +12,7 @@ class Event {
  public:
   //
   Event(std::string module, std::string name, double time, int priority,
-        std::function<bool()> action)
+        std::function<void()> action)
       : module_(module),
         name_(name),
         time_(time),
@@ -20,12 +20,7 @@ class Event {
         action_(action) {}
 
   //
-  // Event(std::string module, std::string name, double time, int priority,
-  //      buffer::Action action)
-  //    : Event(module, name, time, 0, action.second) {}
-
-  //
-  bool Exec() { return action_(); }
+  void Exec() { action_(); }
 
   //
   std::string module() { return module_; }
@@ -38,9 +33,8 @@ class Event {
 
   //
   friend std::ostream& operator<<(std::ostream& stream, const Event& event) {
-    stream << "[module_=" << event.module_ << " name_=" << event.name_
-           << " time_=" << event.time_ << " priority_=" << event.priority_
-           << "]";
+    stream << "[module=" << event.module_ << " name=" << event.name_
+           << " time=" << event.time_ << " priority=" << event.priority_ << "]";
     // for (auto& slot : chunk.slots_) {
     //   stream << slot.first << ", " << slot.second;
     // }
@@ -63,8 +57,13 @@ class Event {
   int priority_{0};
 
   //
-  std::function<bool()> action_;
+  std::function<void()> action_;
 };
+
+}  // namespace wu::actr
+
+//
+namespace wu::actr::event {
 
 //
 class CompareEvents {
@@ -79,9 +78,42 @@ class CompareEvents {
 };
 
 //
-using EventQueue =
-    std::priority_queue<Event, std::vector<Event>, CompareEvents>;
+using QueueType = std::priority_queue<Event, std::vector<Event>, CompareEvents>;
 
-}  // namespace wu::actr
+//
+class Queue {
+ public:
+  //
+  void Add(Event event) { queue_.emplace(event); }
+
+  //
+  Event Top() const { return queue_.top(); }
+
+  //
+  void Pop() { queue_.pop(); }
+
+  //
+  bool Empty() { return queue_.empty(); }
+
+  //
+  int Size() { return queue_.size(); }
+
+  //
+  void AddSignal(std::string name, std::function<void(double)> signal) {
+    signals_.emplace(name, signal);
+  }
+
+  //
+  void Signal(std::string name, double time) { signals_[name](time); }
+
+ private:
+  //
+  QueueType queue_;
+
+  //
+  std::map<std::string, std::function<void(double)>> signals_;
+};
+
+}  // namespace wu::actr::event
 
 #endif

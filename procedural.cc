@@ -28,6 +28,9 @@ bool Module::ResolveConflicts(double time) {
 
     if (match) {
       //
+      state(module::kBusy);
+
+      //
       any_match = true;
 
       //
@@ -36,25 +39,31 @@ bool Module::ResolveConflicts(double time) {
       //
       double event_time = time + 0.5;
 
-      LOG(INFO) << __FUNCTION__
-                << "[Production "
-                   "matched; scheduling action(s) at event_time="
-                << event_time << "]";
-
       //
       for (auto &[module_name, action_pair] : actions) {
-        auto &[action, priority] = action_pair;
+        auto &[name, action, priority] = action_pair;
 
-        Event event("procedural", production.name(), event_time, priority,
+        Event event(module_name, name, event_time, priority,
                     [this, action, module_name, event_time]() {
                       action(buffers_[module_name]);
-
-                      ScheduleConflictResolution(event_time);
-                      return true;
                     });
 
-        event_queue_->emplace(event);
+        LOG(INFO) << __FUNCTION__ << "[Scheduling event=" << event << "]";
+
+        event_queue_->Add(event);
       }
+
+      //
+      Event event(name_, "buffer-free", event_time, -1,
+                  [this]() { state(module::kFree); });
+
+      LOG(INFO) << __FUNCTION__ << "[Scheduling event=" << event << "]";
+
+      //
+      event_queue_->Add(event);
+
+      //
+      event_queue_->Signal("conflict-resolution", event_time);
     }
   }
 
@@ -66,10 +75,10 @@ bool Module::ResolveConflicts(double time) {
 void Module::ScheduleConflictResolution(double time) {
   LOG(INFO) << __FUNCTION__ << "[time=" << time << "]";
 
-  Event event("procedural", "conflict-resolution", time, -1,
-              [this, time]() { return ResolveConflicts(time); });
+  Event event("procedural", "conflict-resolution", time, -1000,
+              [this, time]() { ResolveConflicts(time); });
 
-  event_queue_->emplace(event);
+  event_queue_->Add(event);
 }
 
 }  // namespace wu::actr::procedural

@@ -18,7 +18,7 @@ int main() {
   std::chrono::milliseconds sleep_duration_ms(100);
 
   //
-  wu::actr::EventQueue event_queue;
+  wu::actr::event::Queue event_queue;
 
   //
   wu::actr::goal::Module goal_module(&event_queue);
@@ -46,16 +46,29 @@ int main() {
         {"goal", wu::actr::buffer::Query({{"goal", "goal-2"}})}};
     wu::actr::Actions actions = {
         {"goal", wu::actr::buffer::Modify({{"goal", "goal-3"}})},
-        {"retrieval", wu::actr::buffer::Request({{"slot-1", "value-1"}})}};
+        {"retrieval", wu::actr::retrieval::Start({{"slot-1", "value-1"}})}};
     procedural_module.Add({"production-2", conditions, actions});
   }
 
-  //
-  goal_module.Focus({"goal-chunk", {{"goal", "goal-1"}}});
+  // `production-3`
+  {
+    wu::actr::Conditions conditions = {
+        {"retrieval", wu::actr::buffer::Query({{"slot-1", "value-1"}})}};
+    wu::actr::Actions actions = {{"retrieval", wu::actr::buffer::Clear()}};
+    procedural_module.Add({"production-3", conditions, actions});
+  }
 
   //
-  procedural_module.ScheduleConflictResolution(0.0);
-  wu::actr::Process metaprocess(&event_queue);
+  goal_module.Focus({"goal-chunk", {{"goal", "goal-1"}}, 0.0});
+
+  //
+  declarative_module.Add({"chunk-1", {{"slot-1", "value-1"}}, 0.0});
+
+  //
+  wu::actr::Process metaprocess(&event_queue,
+                                {&goal_module, &declarative_module});
+
+  //
   while (metaprocess.Run(delta_time)) {
     std::this_thread::sleep_for(sleep_duration_ms);
   }

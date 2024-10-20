@@ -12,17 +12,19 @@ bool Buffer::Query(Slots slots) {
   return chunk_.has_value() && chunk_->SlotEquals(slots);
 }
 
-std::string Buffer::Clear() {
+void Buffer::Clear() {
   LOG(INFO) << __FUNCTION__ << "[module=" << module_->name() << "]";
 
-  std::string name = chunk_.has_value() ? chunk_->name() : "nil";
+  if (chunk_.has_value() && clear_listener_.has_value()) {
+    (*clear_listener_)->OnClear(*chunk_);
+  }
+
   chunk_ = std::nullopt;
   failure_ = false;
   requested_ = false;
-  return name;
 }
 
-std::string Buffer::Set(Chunk chunk, bool requested, bool clear) {
+void Buffer::Set(Chunk chunk, bool requested, bool clear) {
   LOG(INFO) << __FUNCTION__ << "[module=" << module_->name()
             << " chunk=" << chunk << " requested=" << requested
             << " clear=" << clear << "]";
@@ -34,11 +36,13 @@ std::string Buffer::Set(Chunk chunk, bool requested, bool clear) {
 
   chunk_ = chunk;
   requested_ = requested;
-  return chunk.name();
 }
 
-// std::string Buffer::Overwrite(Chunk chunk) { return Set(chunk, true, false);
-// }
+void Buffer::Overwrite(Chunk chunk, bool requested) {
+  LOG(INFO) << __FUNCTION__ << "[chunk=" << chunk << "]";
+
+  Set(chunk, requested, false);
+}
 
 std::string Buffer::Modify(Slots slots) {
   LOG(INFO) << __FUNCTION__ << "[module=" << module_->name() << " slots=]";
@@ -46,10 +50,14 @@ std::string Buffer::Modify(Slots slots) {
   return chunk_.has_value() ? chunk_->Modify(slots) : "nil";
 }
 
-bool Buffer::Request(Slots slots) {
+void Buffer::Request(Slots slots) {
   LOG(INFO) << __FUNCTION__ << "[module=" << module_->name() << " slots=]";
 
-  return module_->Request(slots);
+  //
+  module_->Request(slots);
+
+  //
+  Clear();
 }
 
 }  // namespace wu::actr

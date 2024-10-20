@@ -18,15 +18,16 @@ std::string Chunk::Modify(Slots &mod_slots) {
 bool Chunk::SlotEquals(Slots &check_slots) {
   LOG(INFO) << __FUNCTION__ << "[check_slots=]";
 
-  bool equals = true;
+  bool match = true;
 
   for (auto &slot : check_slots) {
     if (slots_.count(slot.first) == 1) {
-      equals &= slots_[slot.first] == slot.second;
+      match &= slots_[slot.first] == slot.second;
     }
   }
 
-  return equals;
+  LOG(INFO) << __FUNCTION__ << "[match=" << (match ? "true" : "false") << "]";
+  return match;
 }
 
 }  // namespace wu::actr
