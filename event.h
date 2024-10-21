@@ -45,13 +45,13 @@ class Event {
 
  private:
   //
-  std::string module_;
+  std::string module_{"default-module"};
 
   //
-  std::string name_;
+  std::string name_{"default-event"};
 
   //
-  double time_;
+  double time_{0.0};
 
   //
   int priority_{0};
@@ -87,7 +87,7 @@ class Queue {
   void Add(Event event) { queue_.emplace(event); }
 
   //
-  Event Top() const { return queue_.top(); }
+  Event Next() const { return queue_.top(); }
 
   //
   void Pop() { queue_.pop(); }

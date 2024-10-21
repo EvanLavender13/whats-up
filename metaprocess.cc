@@ -4,7 +4,7 @@ namespace wu::actr {
 
 bool Process::Run(double delta_time) {
   LOG(INFO) << __FUNCTION__ << " ---------------- [Start step=" << step_
-            << " delta_time = " << delta_time << " time_=" << time_
+            << " delta_time=" << delta_time << " time_=" << time_
             << "] ----------------";
 
   //
@@ -28,13 +28,13 @@ bool Process::Run(double delta_time) {
   //
   while (event_queue_->Size() > 0) {
     //
-    Event event = event_queue_->Top();
+    Event event = event_queue_->Next();
 
     //
     double time_diff = event.time() - time_;
 
     //
-    if (event.time() <= 0.0 || time_diff < 0.001) {
+    if (event.time() <= 0.0 || event.time() < time_ || time_diff < 0.001) {
       LOG(INFO) << __FUNCTION__ << "[event=" << event << "]";
 
       //
@@ -43,8 +43,7 @@ bool Process::Run(double delta_time) {
       //
       event.Exec();
     } else {
-      LOG(INFO) << __FUNCTION__ << "[No events to process; next in "
-                << time_diff << "]";
+      LOG(INFO) << __FUNCTION__ << "[Next event in " << time_diff << "]";
 
       break;
     }

@@ -35,7 +35,7 @@ class Module : public actr::Module {
   void Add(Production production);
 
   //
-  bool ResolveConflicts(double time);
+  bool ResolveConflicts();
 
   //
   void ScheduleConflictResolution(double time);

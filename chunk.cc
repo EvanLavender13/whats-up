@@ -8,8 +8,8 @@ namespace wu::actr {
 std::string Chunk::Modify(Slots &mod_slots) {
   LOG(INFO) << __FUNCTION__ << "[mod_slots=]";
 
-  for (auto &slot : mod_slots) {
-    slots_[slot.first] = slot.second;
+  for (auto &slot : mod_slots.values()) {
+    slots_.Modify(slot.first, slot.second);
   }
 
   return name();
@@ -20,9 +20,9 @@ bool Chunk::SlotEquals(Slots &check_slots) {
 
   bool match = true;
 
-  for (auto &slot : check_slots) {
-    if (slots_.count(slot.first) == 1) {
-      match &= slots_[slot.first] == slot.second;
+  for (auto &slot : check_slots.values()) {
+    if (slots_.Contains(slot.first)) {
+      match &= slots_.SlotEquals(slot.first, slot.second);
     }
   }
 

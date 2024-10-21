@@ -8,7 +8,35 @@
 namespace wu::actr {
 
 //
-using Slots = std::map<std::string, std::string>;
+using SlotsType = std::map<std::string, std::string>;
+
+//
+class Slots {
+ public:
+  //
+  Slots() = default;
+
+  //
+  Slots(SlotsType values) : values_(values) {}
+
+  //
+  void Modify(std::string slot, std::string value) { values_[slot] = value; }
+
+  //
+  bool Contains(std::string slot) { return values_.count(slot) > 0; }
+
+  //
+  bool SlotEquals(std::string slot, std::string value) {
+    return values_[slot] == value;
+  }
+
+  //
+  SlotsType& values() { return values_; }
+
+ private:
+  //
+  SlotsType values_;
+};
 
 //
 class Chunk {

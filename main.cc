@@ -5,10 +5,8 @@
 #define GLOG_USE_GLOG_EXPORT
 #include <glog/logging.h>
 
-#include "declarative.h"
-#include "goal.h"
-#include "metaprocess.h"
-#include "procedural.h"
+#include "agent.h"
+#include "chunk.h"
 
 int main() {
   LOG(INFO) << __FUNCTION__ << "[Start]";
@@ -18,58 +16,50 @@ int main() {
   std::chrono::milliseconds sleep_duration_ms(100);
 
   //
-  wu::actr::event::Queue event_queue;
-
-  //
-  wu::actr::goal::Module goal_module(&event_queue);
-
-  //
-  wu::actr::declarative::Module declarative_module(&event_queue);
-
-  //
-  wu::actr::procedural::Module procedural_module(
-      &event_queue, {{"goal", goal_module.buffer()},
-                     {"retrieval", declarative_module.buffer()}});
+  wu::actr::Agent agent;
 
   // `production-1`
   {
+    // TODO: Creating these is tedious... think of something better
+    auto query_slots(wu::actr::SlotsType({{"goal", "goal-1"}}));
+    auto mod_slots(wu::actr::SlotsType({{"goal", "goal-2"}}));
+
     wu::actr::Conditions conditions = {
-        {"goal", wu::actr::buffer::Query({{"goal", "goal-1"}})}};
-    wu::actr::Actions actions = {
-        {"goal", wu::actr::buffer::Modify({{"goal", "goal-2"}})}};
-    procedural_module.Add({"production-1", conditions, actions});
+        {"goal", wu::actr::buffer::Query(query_slots)}};
+    wu::actr::Actions actions = {{"goal", wu::actr::buffer::Modify(mod_slots)}};
+    agent.AddProcedure({"production-1", conditions, actions});
   }
 
-  // `production-2`
-  {
-    wu::actr::Conditions conditions = {
-        {"goal", wu::actr::buffer::Query({{"goal", "goal-2"}})}};
-    wu::actr::Actions actions = {
-        {"goal", wu::actr::buffer::Modify({{"goal", "goal-3"}})},
-        {"retrieval", wu::actr::retrieval::Start({{"slot-1", "value-1"}})}};
-    procedural_module.Add({"production-2", conditions, actions});
-  }
+  //// `production-2`
+  //{
+  //  wu::actr::Conditions conditions = {
+  //      {"goal", wu::actr::buffer::Query({{"goal", "goal-2"}})}};
+  //  wu::actr::Actions actions = {
+  //      {"goal", wu::actr::buffer::Modify({{"goal", "goal-3"}})},
+  //      {"retrieval", wu::actr::retrieval::Start({{"slot-1", "value-1"}})}};
+  //  agent.AddProcedure({"production-2", conditions, actions});
+  //}
 
-  // `production-3`
-  {
-    wu::actr::Conditions conditions = {
-        {"retrieval", wu::actr::buffer::Query({{"slot-1", "value-1"}})}};
-    wu::actr::Actions actions = {{"retrieval", wu::actr::buffer::Clear()}};
-    procedural_module.Add({"production-3", conditions, actions});
-  }
-
-  //
-  goal_module.Focus({"goal-chunk", {{"goal", "goal-1"}}, 0.0});
-
-  //
-  declarative_module.Add({"chunk-1", {{"slot-1", "value-1"}}, 0.0});
+  //// `production-3`
+  //{
+  //  wu::actr::Conditions conditions = {
+  //      {"retrieval", wu::actr::buffer::Query({{"slot-1", "value-1"}})}};
+  //  wu::actr::Actions actions = {
+  //      {"goal", wu::actr::buffer::Modify({{"goal", "goal-3"}})},
+  //      {"retrieval", wu::actr::buffer::Clear()}};
+  //  agent.AddProcedure({"production-3", conditions, actions});
+  //}
 
   //
-  wu::actr::Process metaprocess(&event_queue,
-                                {&goal_module, &declarative_module});
+  auto goal_slots(wu::actr::SlotsType({{"goal", "goal-1"}}));
+  agent.Focus({"goal-chunk", goal_slots, 0.0});
 
   //
-  while (metaprocess.Run(delta_time)) {
+  auto chunk_slots(wu::actr::SlotsType({{"slot-1", "value-1"}}));
+  agent.Add({"chunk-1", chunk_slots, 0.0});
+
+  //
+  while (agent.Step(delta_time)) {
     std::this_thread::sleep_for(sleep_duration_ms);
   }
 

@@ -11,7 +11,7 @@ void Module::Add(Production production) {
   productions_.emplace_back(production);
 }
 
-bool Module::ResolveConflicts(double time) {
+bool Module::ResolveConflicts() {
   LOG(INFO) << __FUNCTION__ << "[Starting]";
 
   bool any_match = false;
@@ -37,7 +37,7 @@ bool Module::ResolveConflicts(double time) {
       Actions actions = production.actions();
 
       //
-      double event_time = time + 0.5;
+      double event_time = time_ + 0.5;
 
       //
       for (auto &[module_name, action_pair] : actions) {
@@ -76,7 +76,7 @@ void Module::ScheduleConflictResolution(double time) {
   LOG(INFO) << __FUNCTION__ << "[time=" << time << "]";
 
   Event event("procedural", "conflict-resolution", time, -1000,
-              [this, time]() { ResolveConflicts(time); });
+              [this, time]() { ResolveConflicts(); });
 
   event_queue_->Add(event);
 }
