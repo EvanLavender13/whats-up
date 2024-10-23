@@ -12,15 +12,24 @@ void Module::Add(Production production) {
 }
 
 bool Module::ResolveConflicts() {
+  //
+  if (state_ == module::kBusy) {
+    LOG(INFO) << __FUNCTION__ << "[Busy]";
+
+    return false;
+  }
+
   LOG(INFO) << __FUNCTION__ << "[Starting]";
 
   bool any_match = false;
 
+  //
   for (Production &production : productions_) {
     LOG(INFO) << __FUNCTION__ << "[production=" << production << "]";
 
     bool match = true;
 
+    //
     Conditions conditions = production.conditions();
     for (auto &[buffer_name, condition] : conditions) {
       match &= condition(buffers_[buffer_name]);
@@ -40,12 +49,12 @@ bool Module::ResolveConflicts() {
       double event_time = time_ + 0.5;
 
       //
-      for (auto &[module_name, action_pair] : actions) {
-        auto &[name, action, priority] = action_pair;
+      for (auto &action_data : actions) {
+        auto &[buffer_name, name, action, priority] = action_data;
 
-        Event event(module_name, name, event_time, priority,
-                    [this, action, module_name, event_time]() {
-                      action(buffers_[module_name]);
+        Event event(buffer_name, name, event_time, priority,
+                    [this, action, buffer_name, event_time]() {
+                      action(buffers_[buffer_name]);
                     });
 
         LOG(INFO) << __FUNCTION__ << "[Scheduling event=" << event << "]";

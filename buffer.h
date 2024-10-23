@@ -8,26 +8,32 @@
 #include "chunk.h"
 #include "module.h"
 
-namespace wu::actr {
+//
+namespace wu::actr::buffer {
 
 //
 class ClearListener {
  public:
   //
-  virtual void OnClear(Chunk chunk) = 0;
+  virtual void OnBufferClear(std::string chunk_name) = 0;
 
  private:
 };
+
+}  // namespace wu::actr::buffer
+
+namespace wu::actr {
 
 //
 class Buffer {
  public:
   //
-  Buffer(Module *module) : module_(module) {}
+  Buffer(std::string name, Module *module) : name_(name), module_(module) {}
 
   //
-  Buffer(Module *module, ClearListener *clear_listener)
-      : module_(module), clear_listener_(clear_listener) {}
+  Buffer(std::string name, Module *module,
+         buffer::ClearListener *clear_listener)
+      : name_(name), module_(module), clear_listener_(clear_listener) {}
 
   //
   std::string Read() {
@@ -47,7 +53,7 @@ class Buffer {
   void Overwrite(Chunk chunk, bool requested = true);
 
   //
-  std::string Modify(Slots slots);
+  void Modify(Slots slots);
 
   //
   void Request(Slots slots);
@@ -81,6 +87,9 @@ class Buffer {
 
  private:
   //
+  std::string name_;
+
+  //
   Module *module_;
 
   //
@@ -96,7 +105,7 @@ class Buffer {
   bool harvest_{false};
 
   //
-  std::optional<ClearListener *> clear_listener_{std::nullopt};
+  std::optional<buffer::ClearListener *> clear_listener_{std::nullopt};
 };
 
 }  // namespace wu::actr
@@ -105,55 +114,58 @@ class Buffer {
 namespace wu::actr::buffer {
 
 //
-using Test = std::function<bool(Buffer *)>;
+using Test = std::pair<std::string, std::function<bool(Buffer *)>>;
 
 //
-using Action = std::tuple<std::string, std::function<void(Buffer *)>, int>;
+using Action =
+    std::tuple<std::string, std::string, std::function<void(Buffer *)>, int>;
 
 //
-static Test Query(Slots slots) {
-  return [slots](Buffer *buffer) { return buffer->Query(slots); };
+static Test Query(std::string buffer_name, Slots slots) {
+  return {buffer_name,
+          [slots](Buffer *buffer) { return buffer->Query(slots); }};
 }
 
 //
-static Test Empty() {
-  return [](Buffer *buffer) { return buffer->Empty(); };
+static Test Empty(std::string buffer_name) {
+  return {buffer_name, [](Buffer *buffer) { return buffer->Empty(); }};
 }
 
 //
-static Test Full() {
-  return [](Buffer *buffer) { return buffer->Full(); };
+static Test Full(std::string buffer_name) {
+  return {buffer_name, [](Buffer *buffer) { return buffer->Full(); }};
 }
 
 //
-static Test Free() {
-  return [](Buffer *buffer) { return buffer->Free(); };
+static Test Free(std::string buffer_name) {
+  return {buffer_name, [](Buffer *buffer) { return buffer->Free(); }};
 }
 
 //
-static Test Busy() {
-  return [](Buffer *buffer) { return buffer->Busy(); };
+static Test Busy(std::string buffer_name) {
+  return {buffer_name, [](Buffer *buffer) { return buffer->Busy(); }};
 }
 
 //
-static Test Error() {
-  return [](Buffer *buffer) { return buffer->Error(); };
+static Test Error(std::string buffer_name) {
+  return {buffer_name, [](Buffer *buffer) { return buffer->Error(); }};
 }
 
 //
-static Action Clear() {
-  return {"buffer-clear", [](Buffer *buffer) { buffer->Clear(); }, 10};
+static Action Clear(std::string buffer_name) {
+  return {buffer_name, "clear", [](Buffer *buffer) { buffer->Clear(); }, 10};
 }
 
 //
-static Action Set(Chunk chunk) {
-  return {"buffer-set", [chunk](Buffer *buffer) { buffer->Set(chunk); }, 100};
-}
-
-//
-static Action Modify(Slots slots) {
-  return {"buffer-modify", [slots](Buffer *buffer) { buffer->Modify(slots); },
+static Action Set(std::string buffer_name, Chunk chunk) {
+  return {buffer_name, "set", [chunk](Buffer *buffer) { buffer->Set(chunk); },
           100};
+}
+
+//
+static Action Modify(std::string buffer_name, Slots slots) {
+  return {buffer_name, "modify",
+          [slots](Buffer *buffer) { buffer->Modify(slots); }, 100};
 }
 
 //
@@ -162,19 +174,29 @@ static Action Modify(Slots slots) {
 //}
 
 //
-static Action Request(Slots slots) {
-  return {"buffer-request", [slots](Buffer *buffer) { buffer->Request(slots); },
-          50};
+static Action Request(std::string buffer_name, Slots slots) {
+  return {buffer_name, "request",
+          [slots](Buffer *buffer) { buffer->Request(slots); }, 50};
 }
 
 }  // namespace wu::actr::buffer
 
 //
+namespace wu::actr::goal {
+
+static buffer::Action Focus(Chunk chunk) { return buffer::Set("goal", chunk); }
+
+static buffer::Action Modify(Slots slots) {
+  return buffer::Modify("goal", slots);
+}
+
+}  // namespace wu::actr::goal
+
+//
 namespace wu::actr::retrieval {
 
 static buffer::Action Start(Slots slots) {
-  return {"start-retrieval",
-          [slots](Buffer *buffer) { buffer->Request(slots); }, 50};
+  return buffer::Request("retrieval", slots);
 }
 
 }  // namespace wu::actr::retrieval

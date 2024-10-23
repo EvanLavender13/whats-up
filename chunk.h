@@ -49,7 +49,7 @@ class Chunk {
       : name_(name), slots_(slots), creation_time_(creation_time) {}
 
   //
-  std::string Modify(Slots& mod_slots);
+  void Modify(Slots& mod_slots);
 
   //
   bool SlotEquals(Slots& check_slots);

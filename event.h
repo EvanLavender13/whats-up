@@ -33,7 +33,7 @@ class Event {
 
   //
   friend std::ostream& operator<<(std::ostream& stream, const Event& event) {
-    stream << "[module=" << event.module_ << " name=" << event.name_
+    stream << "[buffer=" << event.module_ << " name=" << event.name_
            << " time=" << event.time_ << " priority=" << event.priority_ << "]";
     // for (auto& slot : chunk.slots_) {
     //   stream << slot.first << ", " << slot.second;

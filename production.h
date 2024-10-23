@@ -5,8 +5,8 @@
 
 namespace wu::actr {
 
-using Conditions = std::map<std::string, buffer::Test>;
-using Actions = std::map<std::string, buffer::Action>;
+using Conditions = std::vector<buffer::Test>;
+using Actions = std::vector<buffer::Action>;
 
 //
 class Production {
@@ -27,18 +27,20 @@ class Production {
   //
   friend std::ostream& operator<<(std::ostream& stream,
                                   const Production& production) {
-    stream << "[" << production.name_ << " condition-buffers=[";
+    // stream << "[" << production.name_ << " condition-buffers=[";
 
-    for (auto& condition : production.conditions_) {
-      stream << condition.first << " ";
-    }
+    // for (auto& condition : production.conditions_) {
+    //   stream << condition.first << " ";
+    // }
 
-    stream << "\b]"
-           << " action-buffers=[";
-    for (auto& action : production.actions_) {
-      stream << action.first << " ";
-    }
-    stream << "\b]";
+    // stream << "\b]"
+    //        << " action-buffers=[";
+    // for (auto& action : production.actions_) {
+    //   stream << action.first << " ";
+    // }
+    // stream << "\b]";
+
+    stream << "[name=" << production.name_ << "]";
 
     return stream;
   }

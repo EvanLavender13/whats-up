@@ -8,6 +8,7 @@
 
 namespace wu::actr {
 
+//
 class Agent {
  public:
   //

@@ -18,11 +18,12 @@ using Buffers = std::map<std::string, Buffer *>;
 //
 namespace wu::actr::procedural {
 
+// TODO: Make production buffer for tracing?
 class Module : public actr::Module {
  public:
   //
   Module(event::Queue *event_queue, Buffers buffers)
-      : actr::Module("production", event_queue), buffers_(buffers) {
+      : actr::Module("procedural", event_queue), buffers_(buffers) {
     event_queue_->AddSignal("conflict-resolution", [this](double time) {
       ScheduleConflictResolution(time);
     });

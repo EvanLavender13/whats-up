@@ -12,7 +12,7 @@ class Module : public actr::Module {
  public:
   //
   Module(event::Queue* event_queue)
-      : actr::Module("goal", event_queue), buffer_(this) {}
+      : actr::Module("goal", event_queue), buffer_("goal", this) {}
 
   //
   void Request(Slots& slots) override {}

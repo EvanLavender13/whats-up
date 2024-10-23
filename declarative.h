@@ -10,17 +10,18 @@
 namespace wu::actr::declarative {
 
 //
-class Module : public actr::Module, public ClearListener {
+class Module : public actr::Module, public buffer::ClearListener {
  public:
   //
   Module(event::Queue *event_queue)
-      : actr::Module("retrieval", event_queue), buffer_(this, this) {}
+      : actr::Module("declarative", event_queue),
+        buffer_("retrieval", this, this) {}
 
   //
   void Request(Slots &slots) override;
 
   //
-  void OnClear(Chunk chunk) override;
+  void OnBufferClear(std::string chunk_name) override;
 
   //
   void Retrieve(Slots &slots);

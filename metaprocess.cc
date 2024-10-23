@@ -55,7 +55,7 @@ bool Process::Run(double delta_time) {
           .count();
   LOG(INFO) << __FUNCTION__
             << " ---------------- [Finish elapsed_time=" << elapsed_time
-            << "] ----------------";
+            << "ms] ----------------";
 
   time_ += delta_time;
   step_++;

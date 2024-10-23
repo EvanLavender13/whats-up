@@ -21,12 +21,14 @@ int main() {
   // `production-1`
   {
     // TODO: Creating these is tedious... think of something better
-    auto query_slots(wu::actr::SlotsType({{"goal", "goal-1"}}));
-    auto mod_slots(wu::actr::SlotsType({{"goal", "goal-2"}}));
+    auto query_slots(wu::actr::SlotsType({{"find", "thing"}}));
+    // auto mod_slots(wu::actr::SlotsType({{"goal", "goal-2"}}));
+    auto request_slots(wu::actr::SlotsType({{"type", "thing"}}));
+    auto next_goal(wu::actr::SlotsType({{"find", "next-thing"}}));
 
     wu::actr::Conditions conditions = {
-        {"goal", wu::actr::buffer::Query(query_slots)}};
-    wu::actr::Actions actions = {{"goal", wu::actr::buffer::Modify(mod_slots)}};
+        wu::actr::buffer::Query("goal", query_slots)};
+    wu::actr::Actions actions = {wu::actr::retrieval::Start(request_slots)};
     agent.AddProcedure({"production-1", conditions, actions});
   }
 
@@ -51,12 +53,12 @@ int main() {
   //}
 
   //
-  auto goal_slots(wu::actr::SlotsType({{"goal", "goal-1"}}));
+  auto goal_slots(wu::actr::SlotsType({{"find", "thing"}}));
   agent.Focus({"goal-chunk", goal_slots, 0.0});
 
   //
-  auto chunk_slots(wu::actr::SlotsType({{"slot-1", "value-1"}}));
-  agent.Add({"chunk-1", chunk_slots, 0.0});
+  auto chunk_slots(wu::actr::SlotsType({{"type", "thing"}}));
+  agent.Add({"thing-chunk", chunk_slots, 0.0});
 
   //
   while (agent.Step(delta_time)) {
