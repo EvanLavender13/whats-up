@@ -30,6 +30,8 @@ class Process {
   //
   double time() const { return time_; }
 
+  const event::Queue &queue() const { return *event_queue_; }
+
  private:
   //
   event::Queue *event_queue_;
@@ -45,5 +47,19 @@ class Process {
 };
 
 }  // namespace wu::actr
+
+namespace wu::actr::process {
+
+class Ui {
+ public:
+  //
+  void Show(const Process &process);
+
+ private:
+  //
+  event::Ui queue_ui;
+};
+
+}  // namespace wu::actr::process
 
 #endif

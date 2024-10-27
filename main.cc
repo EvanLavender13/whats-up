@@ -5,30 +5,37 @@
 #define GLOG_USE_GLOG_EXPORT
 #include <glog/logging.h>
 
+#include "GLFW/glfw3.h"
+#include "GLFW/glfw3native.h"
 #include "agent.h"
 #include "chunk.h"
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
+#include "implot.h"
+#include "raylib.h"
+#include "raymath.h"
+
+static wu::actr::Slots Slots(wu::actr::SlotsType slots) {
+  return wu::actr::Slots(slots);
+}
 
 int main() {
   LOG(INFO) << __FUNCTION__ << "[Start]";
 
   // double delta_time_s = 1.0 / 60.0;
-  double delta_time = 0.25;
-  std::chrono::milliseconds sleep_duration_ms(100);
+  // double delta_time = 0.25;
+  // std::chrono::milliseconds sleep_duration_ms(100);
 
   //
   wu::actr::Agent agent;
 
   // `production-1`
   {
-    // TODO: Creating these is tedious... think of something better
-    auto query_slots(wu::actr::SlotsType({{"find", "thing"}}));
-    // auto mod_slots(wu::actr::SlotsType({{"goal", "goal-2"}}));
-    auto request_slots(wu::actr::SlotsType({{"type", "thing"}}));
-    auto next_goal(wu::actr::SlotsType({{"find", "next-thing"}}));
-
     wu::actr::Conditions conditions = {
-        wu::actr::buffer::Query("goal", query_slots)};
-    wu::actr::Actions actions = {wu::actr::retrieval::Start(request_slots)};
+        wu::actr::buffer::Query("goal", Slots({{"find", "thing"}}))};
+    wu::actr::Actions actions = {
+        wu::actr::retrieval::Start(Slots({{"type", "thing"}}))};
     agent.AddProcedure({"production-1", conditions, actions});
   }
 
@@ -53,17 +60,116 @@ int main() {
   //}
 
   //
-  auto goal_slots(wu::actr::SlotsType({{"find", "thing"}}));
+  auto goal_slots(Slots({{"find", "thing"}}));
   agent.Focus({"goal-chunk", goal_slots, 0.0});
 
   //
-  auto chunk_slots(wu::actr::SlotsType({{"type", "thing"}}));
+  auto chunk_slots(Slots({{"type", "thing"}}));
   agent.Add({"thing-chunk", chunk_slots, 0.0});
 
   //
-  while (agent.Step(delta_time)) {
-    std::this_thread::sleep_for(sleep_duration_ms);
+  // while (agent.Step(delta_time)) {
+  //  std::this_thread::sleep_for(sleep_duration_ms);
+  //}
+
+  const int screen_width = 1920;
+  const int screen_height = 1080;
+
+  InitWindow(screen_width, screen_height, "Window");
+  SetTargetFPS(60);
+  // DisableCursor();
+
+  // Setup Dear ImGui context
+  IMGUI_CHECKVERSION();
+  ImGui::CreateContext();
+  ImPlot::CreateContext();
+
+  ImGuiIO& io = ImGui::GetIO();
+  io.ConfigFlags |=
+      ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
+  io.ConfigFlags |=
+      ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
+
+  // Setup Platform/Renderer backends
+  ImGui_ImplGlfw_InitForOpenGL(glfwGetCurrentContext(), true);
+  ImGui_ImplOpenGL3_Init();
+
+  Camera3D camera;
+  camera.position = {0.0f, 10.0f, 10.0f};
+  camera.target = {0.0f, 0.0f, 0.0f};
+  camera.up = {0.0f, 1.0f, 0.0f};
+  camera.fovy = 90.0f;
+  camera.projection = CAMERA_PERSPECTIVE;  // Camera mode type
+
+  Vector3 cubePosition = {0.0f, 0.0f, 0.0f};
+  Vector3 agentPosition = {5.0f, 0.0f, 0.0f};
+
+  wu::actr::agent::Ui agent_ui;
+  const float time_step = 1.0f;
+
+  double current_frame_time = GetTime();
+  double previous_frame_time = current_frame_time;
+  double accumulator = 0.0f;
+
+  while (!WindowShouldClose()) {
+    current_frame_time = GetTime();
+    double delta_time = current_frame_time - previous_frame_time;
+    previous_frame_time = current_frame_time;
+    accumulator += delta_time;
+
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+
+    //
+    agent_ui.Show(agent);
+
+    //
+    while (accumulator >= time_step) {
+      agent.Step(time_step);
+      accumulator -= time_step;
+    }
+
+    //
+    UpdateCamera(&camera, CAMERA_ORBITAL);
+
+    //
+    Vector3 direction =
+        Vector3Normalize(Vector3Subtract(cubePosition, agentPosition));
+    Ray ray = {agentPosition, direction};
+
+    //
+    BeginDrawing();
+    {
+      ClearBackground(RAYWHITE);
+
+      BeginMode3D(camera);
+      {
+        DrawCube(cubePosition, 2.0f, 2.0f, 2.0f, RED);
+        DrawSphere(agentPosition, 0.5f, BLUE);
+
+        DrawRay(ray, RED);
+
+        // DrawGrid(10, 1.0f);
+      }
+      EndMode3D();
+
+      DrawText("Welcome to the third dimension!", 10, 40, 20, DARKGRAY);
+      DrawFPS(10, 10);
+    }
+
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+    EndDrawing();
   }
+
+  ImGui_ImplOpenGL3_Shutdown();
+  ImGui_ImplGlfw_Shutdown();
+  ImPlot::DestroyContext();
+  ImGui::DestroyContext();
+
+  CloseWindow();
 
   LOG(INFO) << __FUNCTION__ << "[Exit]";
   return 0;

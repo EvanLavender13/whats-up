@@ -5,15 +5,16 @@
 #include <iostream>
 #include <map>
 #include <queue>
+#include <string>
 
 namespace wu::actr {
 
 class Event {
  public:
   //
-  Event(std::string module, std::string name, double time, int priority,
+  Event(std::string buffer, std::string name, double time, int priority,
         std::function<void()> action)
-      : module_(module),
+      : buffer_(buffer),
         name_(name),
         time_(time),
         priority_(priority),
@@ -23,17 +24,20 @@ class Event {
   void Exec() { action_(); }
 
   //
-  std::string module() { return module_; }
+  std::string buffer() const { return buffer_; }
 
   //
-  double time() { return time_; }
+  std::string name() const { return name_; }
 
   //
-  int priority() { return priority_; }
+  double time() const { return time_; }
+
+  //
+  int priority() const { return priority_; }
 
   //
   friend std::ostream& operator<<(std::ostream& stream, const Event& event) {
-    stream << "[buffer=" << event.module_ << " name=" << event.name_
+    stream << "[buffer=" << event.buffer_ << " name=" << event.name_
            << " time=" << event.time_ << " priority=" << event.priority_ << "]";
     // for (auto& slot : chunk.slots_) {
     //   stream << slot.first << ", " << slot.second;
@@ -45,7 +49,7 @@ class Event {
 
  private:
   //
-  std::string module_{"default-module"};
+  std::string buffer_{"default-buffer"};
 
   //
   std::string name_{"default-event"};
@@ -106,12 +110,25 @@ class Queue {
   //
   void Signal(std::string name, double time) { signals_[name](time); }
 
+  //
+  const QueueType& queue() const { return queue_; }
+
  private:
   //
   QueueType queue_;
 
   //
   std::map<std::string, std::function<void(double)>> signals_;
+};
+
+class Ui {
+ public:
+  //
+  void Show(const Queue& queue);
+
+ private:
+  //
+  void ShowEvent(const Event& event, int index);
 };
 
 }  // namespace wu::actr::event

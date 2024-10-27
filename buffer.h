@@ -199,6 +199,10 @@ static buffer::Action Start(Slots slots) {
   return buffer::Request("retrieval", slots);
 }
 
+static buffer::Action Finished(Chunk chunk) {
+  return buffer::Set("retrieval", chunk);
+}
+
 }  // namespace wu::actr::retrieval
 
 #endif

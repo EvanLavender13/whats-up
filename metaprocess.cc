@@ -1,5 +1,7 @@
 #include "metaprocess.h"
 
+#include "imgui.h"
+
 namespace wu::actr {
 
 bool Process::Run(double delta_time) {
@@ -8,7 +10,7 @@ bool Process::Run(double delta_time) {
             << "] ----------------";
 
   //
-  for (Module *module : modules_) {
+  for (Module* module : modules_) {
     module->time(time_);
   }
 
@@ -63,3 +65,14 @@ bool Process::Run(double delta_time) {
 }
 
 }  // namespace wu::actr
+
+namespace wu::actr::process {
+
+void Ui::Show(const Process& process) {
+  //
+  if (ImGui::CollapsingHeader("Metaprocess")) {
+    queue_ui.Show(process.queue());
+  }
+}
+
+}  // namespace wu::actr::process

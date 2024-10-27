@@ -35,6 +35,9 @@ class Module : public actr::Module, public buffer::ClearListener {
   //
   Buffer *buffer() { return &buffer_; }
 
+  //
+  // void
+
  private:
   //
   double BaseLevelActivation(Chunk &chunk);
@@ -56,6 +59,14 @@ class Module : public actr::Module, public buffer::ClearListener {
 
   //
   double threshold_{0.0};
+};
+
+//
+class Ui {
+ public:
+  //
+
+ private:
 };
 
 }  // namespace wu::actr::declarative

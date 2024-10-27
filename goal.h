@@ -23,6 +23,8 @@ class Module : public actr::Module {
   //
   Buffer* buffer() { return &buffer_; }
 
+  std::string GetState() { return ""; }
+
  private:
   //
   Buffer buffer_;

@@ -43,8 +43,7 @@ void Module::Retrieve(Slots &slots) {
     double event_time = time_ + retrieval_time;
 
     //
-    auto [buffer_name, name, action, priority] =
-        buffer::Set("retrieval", chunk);
+    auto [buffer_name, name, action, priority] = retrieval::Finished(chunk);
 
     //
     Event event(buffer_name, "retrieved-chunk", event_time, priority,
@@ -80,7 +79,9 @@ void Module::Request(Slots &slots) {
 };
 
 void Module::OnBufferClear(std::string chunk_name) {
+  //
   chunks_[chunk_name].Use();
+
   LOG(INFO) << __FUNCTION__ << "[chunk=" << chunks_[chunk_name] << "]";
 }
 

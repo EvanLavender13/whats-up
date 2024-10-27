@@ -39,6 +39,9 @@ class Agent {
   //
   void Focus(Chunk chunk) { goal_module_.Focus(chunk); }
 
+  //
+  const Process& process() const { return metaprocess_; }
+
  private:
   //
   event::Queue event_queue_;
@@ -57,5 +60,20 @@ class Agent {
 };
 
 }  // namespace wu::actr
+
+namespace wu::actr::agent {
+
+//
+class Ui {
+ public:
+  //
+  void Show(const Agent& agent);
+
+ private:
+  //
+  process::Ui process_ui_;
+};
+
+}  // namespace wu::actr::agent
 
 #endif
