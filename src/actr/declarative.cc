@@ -1,4 +1,4 @@
-#include "declarative.h"
+#include "actr/declarative.h"
 
 #define GLOG_USE_GLOG_EXPORT
 #include <glog/logging.h>

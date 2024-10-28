@@ -7,8 +7,9 @@
 
 #include "GLFW/glfw3.h"
 #include "GLFW/glfw3native.h"
-#include "agent.h"
-#include "chunk.h"
+#include "actr/agent.h"
+#include "actr/chunk.h"
+#include "game/camera.h"
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
@@ -79,18 +80,14 @@ int main() {
   SetTargetFPS(60);
   // DisableCursor();
 
-  // Setup Dear ImGui context
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
   ImPlot::CreateContext();
 
   ImGuiIO& io = ImGui::GetIO();
-  io.ConfigFlags |=
-      ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
-  io.ConfigFlags |=
-      ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
+  io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+  io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
 
-  // Setup Platform/Renderer backends
   ImGui_ImplGlfw_InitForOpenGL(glfwGetCurrentContext(), true);
   ImGui_ImplOpenGL3_Init();
 
@@ -99,9 +96,11 @@ int main() {
   camera.target = {0.0f, 0.0f, 0.0f};
   camera.up = {0.0f, 1.0f, 0.0f};
   camera.fovy = 90.0f;
-  camera.projection = CAMERA_PERSPECTIVE;  // Camera mode type
+  camera.projection = CAMERA_PERSPECTIVE;
 
-  Vector3 cubePosition = {0.0f, 0.0f, 0.0f};
+  wu::game::camera::Orbit orbit;
+
+  Vector3 thingPosition = {0.0f, 0.0f, 0.0f};
   Vector3 agentPosition = {5.0f, 0.0f, 0.0f};
 
   wu::actr::agent::Ui agent_ui;
@@ -117,6 +116,8 @@ int main() {
     previous_frame_time = current_frame_time;
     accumulator += delta_time;
 
+    Vector2 mouse_delta = GetMouseDelta();
+
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
@@ -126,17 +127,23 @@ int main() {
 
     //
     while (accumulator >= time_step) {
-      agent.Step(time_step);
+      // agent.Step(time_step);
       accumulator -= time_step;
     }
 
     //
-    UpdateCamera(&camera, CAMERA_ORBITAL);
+    // UpdateCamera(&camera, CAMERA_CUSTOM);
+    orbit.Update(camera, mouse_delta.x, mouse_delta.y);
 
     //
     Vector3 direction =
-        Vector3Normalize(Vector3Subtract(cubePosition, agentPosition));
+        Vector3Normalize(Vector3Subtract(thingPosition, agentPosition));
     Ray ray = {agentPosition, direction};
+
+    //
+    RayCollision collision = GetRayCollisionSphere(ray, thingPosition, 0.5f);
+    if (collision.hit) {
+    }
 
     //
     BeginDrawing();
@@ -145,12 +152,15 @@ int main() {
 
       BeginMode3D(camera);
       {
-        DrawCube(cubePosition, 2.0f, 2.0f, 2.0f, RED);
+        DrawSphere(thingPosition, 0.5f, RED);
         DrawSphere(agentPosition, 0.5f, BLUE);
 
-        DrawRay(ray, RED);
+        // DrawRay(ray, RED);
+        if (collision.hit) {
+          DrawLine3D(agentPosition, collision.point, RED);
+        }
 
-        // DrawGrid(10, 1.0f);
+        DrawGrid(10, 1.0f);
       }
       EndMode3D();
 

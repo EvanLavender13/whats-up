@@ -1,9 +1,9 @@
-#include "goal.h"
+#include "actr/goal.h"
 
 #define GLOG_USE_GLOG_EXPORT
 #include <glog/logging.h>
 
-#include "event.h"
+#include "actr/event.h"
 
 namespace wu::actr::goal {
 
